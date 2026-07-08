@@ -174,6 +174,25 @@ def gads_campaigns_daily(start,end):
         row["cv"]=round(wf.get((row["cid"],row["d"]),0.0),1)
     return camps,rows
 
+def gads_search_terms(start,end):
+    """[{term,im,cl,co,cv}] - vyhladavacie dopyty (Search terms report), agregovane za [start,end]
+    naprieč kampaňami, zoradene podla klikov zostupne, orezane na top N."""
+    svc=_gads_svc()
+    q=(f"SELECT search_term_view.search_term, metrics.impressions, metrics.clicks,"
+       f" metrics.cost_micros, metrics.conversions"
+       f" FROM search_term_view WHERE segments.date BETWEEN '{start}' AND '{end}'"
+       f" AND metrics.impressions > 0")
+    by=defaultdict(lambda:{"im":0,"cl":0,"co":0.0,"cv":0.0})
+    for batch in svc.search_stream(customer_id=GADS_CUSTOMER,query=q):
+        for r in batch.results:
+            t=r.search_term_view.search_term; m=r.metrics
+            by[t]["im"]+=int(m.impressions); by[t]["cl"]+=int(m.clicks)
+            by[t]["co"]+=m.cost_micros/1e6; by[t]["cv"]+=m.conversions
+    out=[{"term":t,"im":v["im"],"cl":v["cl"],"co":round(v["co"],2),"cv":round(v["cv"],1)}
+         for t,v in by.items()]
+    out.sort(key=lambda x:(-x["cl"],-x["co"]))
+    return out[:60]
+
 def gads_budgets():
     svc=_gads_svc()
     q=("SELECT campaign.id, campaign_budget.amount_micros"
@@ -273,6 +292,8 @@ def main():
     print(f"  budget z {len(gbud)} realne zobrazovanych kampani")
 
     print("Creatives ..."); rsa=safe(lambda:gads_rsa(cs,cend),"gads_rsa") or {}
+    print(f"Search terms ({cs}..{cend}) ..."); search_terms=safe(lambda:gads_search_terms(cs,cend),"gads_search_terms") or []
+    print(f"  search terms: {len(search_terms)}")
 
     days=sorted(set(gd))
     daily={}
@@ -282,7 +303,8 @@ def main():
                   "cost_meta":0.0,"conv_meta":0.0}
     out={"daily":daily,"channels":chan or [],
          "campaigns":camps,"camp_daily":camp_daily,"camp_window":camp_window,
-         "budgets":budget_total,"rsa":rsa,"gimgs":{},"gprev":{},"creatives":{}}
+         "budgets":budget_total,"rsa":rsa,"gimgs":{},"gprev":{},"creatives":{},
+         "search_terms":search_terms,"search_terms_window":{"start":cs,"end":cend}}
     json.dump(out,open(a.out,"w",encoding="utf-8"),ensure_ascii=False,separators=(",",":"))
     tc=sum(v["cost_gads"] for v in daily.values())
     print(f"Days with PPC: {len(daily)} | total cost ${tc:,.0f} | channel rows: {len(out['channels'])}")

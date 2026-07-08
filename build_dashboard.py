@@ -35,6 +35,7 @@ def main():
         "campaigns":ppc.get("campaigns",{}),"camp_daily":ppc.get("camp_daily",[]),
         "camp_window":ppc.get("camp_window",{}),"budgets":ppc.get("budgets",{}),
         "rsa":ppc.get("rsa",{}),"gimgs":ppc.get("gimgs",{}),"gprev":ppc.get("gprev",{}),"creatives":ppc.get("creatives",{}),
+        "searchTerms":ppc.get("search_terms",[]),"searchTermsWindow":ppc.get("search_terms_window",{}),
         "logo":asset("logo.b64"),"hero":asset("hero.b64"),
     }
     html=TEMPLATE.replace("/*__DATA__*/",json.dumps(DATA,ensure_ascii=False,separators=(",",":")))
@@ -415,6 +416,11 @@ TEMPLATE=r"""<!DOCTYPE html>
       <label class="actsw"><input type="checkbox" id="campActive"> len aktuálne spustené</label></div>
     <div id="campBudget"></div>
     <div class="card" style="padding:6px 6px"><div class="tblwrap"><div id="campTbl"></div></div></div>
+  </section>
+
+  <section>
+    <div class="sec-h"><div><h2>Vyhľadávacie dopyty</h2><div class="hint" id="qHint">Google Ads, Search terms report</div></div></div>
+    <div class="card" style="padding:6px 6px"><div class="tblwrap"><div id="qTbl"></div></div></div>
   </section>
 </div>
 
@@ -885,6 +891,25 @@ function renderCampaigns(F,T){
     if(campSort.col===col)campSort.dir*=-1; else campSort={col,dir:col==='name'?1:-1};
     renderCampaigns(F,T);}));
 }
+let qRendered=false;
+function renderSearchTerms(){
+  if(qRendered)return; qRendered=true;
+  const rows=(D.searchTerms||[]).map(r=>({...r,ctr:r.im?r.cl/r.im*100:0,cpc:r.cl?r.co/r.cl:0}));
+  const w=D.searchTermsWindow||{};
+  document.getElementById('qHint').textContent=(rows.length?rows.length+' dopytov · ':'')+'Google Ads'+
+    (w.start?' · '+fmtD(w.start)+' – '+fmtD(w.end):'');
+  const el=document.getElementById('qTbl');
+  if(!rows.length){el.innerHTML='<div class="empty">Žiadne vyhľadávacie dopyty v tomto období.</div>';return;}
+  el.innerHTML='<table><thead><tr><th>Dopyt</th><th class="num">Zobrazenia</th><th class="num">Kliknutia</th>'+
+    '<th class="num">CTR</th><th class="num">Cena</th><th class="num">Leady</th></tr></thead><tbody>'+
+    rows.map(r=>`<tr><td data-label="Dopyt">${r.term}</td>
+      <td class="num" data-label="Zobrazenia">${r.im.toLocaleString('en-US').replace(/\s/g,NB)}</td>
+      <td class="num" data-label="Kliknutia">${r.cl.toLocaleString('en-US').replace(/\s/g,NB)}</td>
+      <td class="num" data-label="CTR">${r.ctr.toFixed(2).replace('.',',')} %</td>
+      <td class="num" data-label="Cena">${eur(r.co,2)}</td>
+      <td class="num" data-label="Leady"><b>${intf(r.cv)}</b></td></tr>`).join('')
+    +'</tbody></table>';
+}
 function creativesHTML(cid){
   if(cid[0]==='m'){const ads=D.creatives[cid];
     if(!ads||!ads.length)return '<div class="crv-note">Pre túto Meta kampaň nie sú dostupné náhľady aktívnych reklám.</div>';
@@ -913,7 +938,7 @@ document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
   const t=b.dataset.tab;
   document.getElementById('tabOverview').hidden=(t!=='overview');
   document.getElementById('tabCampaigns').hidden=(t!=='campaigns');
-  if(t==='campaigns')renderCampaigns(curF,curT);
+  if(t==='campaigns'){renderCampaigns(curF,curT);renderSearchTerms();}
 }));
 document.getElementById('campActive').addEventListener('change',()=>renderCampaigns(curF,curT));
 
