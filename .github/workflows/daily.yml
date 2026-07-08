@@ -1,0 +1,67 @@
+name: Valentindance report – denný build + deploy
+
+on:
+  workflow_dispatch: {}     # manuálne spustenie z GitHub UI
+  schedule:
+    - cron: '15 3 * * *'    # ~3:15 ráno
+    - cron: '30 13 * * *'   # ~13:30 (GA4 dáta za včerajšok dotečú okolo obeda)
+
+permissions:
+  contents: write           # commit akumulovanej histórie kampaní
+
+concurrency:
+  group: valentindance-report
+  cancel-in-progress: false
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    env:
+      SM_ACCOUNT: ""        # CI → použiť aktívny service account (bez --account)
+      PYTHON_BIN: python3
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: pip install --quiet google-analytics-data google-ads requests
+
+      - name: Auth to Google Cloud (service account)
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Build report
+        run: |
+          chmod +x run_report.sh
+          ./run_report.sh
+
+      - name: Prepare site (report + heslo middleware)
+        run: |
+          mkdir -p site
+          cp report.html site/index.html
+          cp deploy-middleware.js site/middleware.js
+          cp deploy-vercel.json site/vercel.json
+          cp deploy-manifest.json site/manifest.json
+          cp assets/icon-180.png assets/icon-192.png assets/icon-512.png site/
+
+      - name: Deploy to Vercel (production)
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          npm i -g vercel@latest
+          vercel deploy site --prod --yes --token "${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Commit accumulated campaign history + GA4 cache
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f data/camp_history.json data/ga4_cache.json || true
+          git commit -m "chore: update campaign history + GA4 cache $(date -u +%F)" || echo "no changes to commit"
+          git push || echo "push skipped"

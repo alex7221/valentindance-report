@@ -1,0 +1,24 @@
+# Reálne klientske dáta a výstupy - NIKDY do repa
+data/camp_history.json
+data/ga4_cache.json
+*.csv
+client_report.html
+demo_report.html
+*_report.html
+report.html
+
+# Deploy / build artefakty
+.vercel/
+client-report-site/
+*-demo-site/
+site/
+
+# Credentials (vždy len v Secret Manageri)
+*-key.json
+sa-key.json
+.env
+
+# Python / OS
+__pycache__/
+.firecrawl/
+.DS_Store

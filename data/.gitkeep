@@ -1,0 +1,2 @@
+# Sem CI commituje data/camp_history.json + data/ga4_cache.json (per klient, regeneruje sa).
+# V template prázdne - reálne dáta NIKDY necommituj.
