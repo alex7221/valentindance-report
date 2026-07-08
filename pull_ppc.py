@@ -174,24 +174,24 @@ def gads_campaigns_daily(start,end):
         row["cv"]=round(wf.get((row["cid"],row["d"]),0.0),1)
     return camps,rows
 
-def gads_search_terms(start,end):
-    """[{term,im,cl,co,cv}] - vyhladavacie dopyty (Search terms report), agregovane za [start,end]
-    naprieč kampaňami, zoradene podla klikov zostupne, orezane na top N."""
+def gads_search_terms_daily(start,end):
+    """[{d,term,im,cl,co,cv}] - vyhladavacie dopyty (Search terms report) po dnoch,
+    agregovane naprieč kampaňami (den+dopyt). Umoznuje picker-driven prepocet v dashboarde.
+    LEN dopyty s aspon 1 klikom - cistych impresii (bez interakcie) su ~95% riadkov a bez
+    klikov nenesu ziadnu hodnotu, len by nafukovali historiu (self-contained HTML)."""
     svc=_gads_svc()
-    q=(f"SELECT search_term_view.search_term, metrics.impressions, metrics.clicks,"
+    q=(f"SELECT search_term_view.search_term, segments.date, metrics.impressions, metrics.clicks,"
        f" metrics.cost_micros, metrics.conversions"
        f" FROM search_term_view WHERE segments.date BETWEEN '{start}' AND '{end}'"
-       f" AND metrics.impressions > 0")
+       f" AND metrics.clicks > 0")
     by=defaultdict(lambda:{"im":0,"cl":0,"co":0.0,"cv":0.0})
     for batch in svc.search_stream(customer_id=GADS_CUSTOMER,query=q):
         for r in batch.results:
-            t=r.search_term_view.search_term; m=r.metrics
-            by[t]["im"]+=int(m.impressions); by[t]["cl"]+=int(m.clicks)
-            by[t]["co"]+=m.cost_micros/1e6; by[t]["cv"]+=m.conversions
-    out=[{"term":t,"im":v["im"],"cl":v["cl"],"co":round(v["co"],2),"cv":round(v["cv"],1)}
-         for t,v in by.items()]
-    out.sort(key=lambda x:(-x["cl"],-x["co"]))
-    return out[:60]
+            key=(str(r.segments.date),r.search_term_view.search_term); m=r.metrics
+            by[key]["im"]+=int(m.impressions); by[key]["cl"]+=int(m.clicks)
+            by[key]["co"]+=m.cost_micros/1e6; by[key]["cv"]+=m.conversions
+    return [{"d":d,"term":t,"im":v["im"],"cl":v["cl"],"co":round(v["co"],2),"cv":round(v["cv"],1)}
+            for (d,t),v in by.items()]
 
 def gads_budgets():
     svc=_gads_svc()
@@ -292,8 +292,18 @@ def main():
     print(f"  budget z {len(gbud)} realne zobrazovanych kampani")
 
     print("Creatives ..."); rsa=safe(lambda:gads_rsa(cs,cend),"gads_rsa") or {}
-    print(f"Search terms ({cs}..{cend}) ..."); search_terms=safe(lambda:gads_search_terms(cs,cend),"gads_search_terms") or []
-    print(f"  search terms: {len(search_terms)}")
+
+    print(f"Search terms ({cs}..{cend}) ..."); new_terms=safe(lambda:gads_search_terms_daily(cs,cend),"gads_search_terms_daily") or []
+    qstore_path=os.path.join(os.path.dirname(os.path.abspath(__file__)),"data","query_history.json")
+    qstore={"daily":[]}
+    if os.path.exists(qstore_path):
+        try: qstore=json.load(open(qstore_path,encoding="utf-8"))
+        except Exception: pass
+    qstore["daily"]=[r for r in qstore.get("daily",[]) if r["d"]<cs]+new_terms
+    qstore["updated"]=today
+    json.dump(qstore,open(qstore_path,"w",encoding="utf-8"),ensure_ascii=False,separators=(",",":"))
+    search_terms_daily=qstore["daily"]
+    print(f"  search terms: {len(new_terms)} new rows | history rows {len(search_terms_daily)}")
 
     days=sorted(set(gd))
     daily={}
@@ -304,7 +314,7 @@ def main():
     out={"daily":daily,"channels":chan or [],
          "campaigns":camps,"camp_daily":camp_daily,"camp_window":camp_window,
          "budgets":budget_total,"rsa":rsa,"gimgs":{},"gprev":{},"creatives":{},
-         "search_terms":search_terms,"search_terms_window":{"start":cs,"end":cend}}
+         "search_terms_daily":search_terms_daily}
     json.dump(out,open(a.out,"w",encoding="utf-8"),ensure_ascii=False,separators=(",",":"))
     tc=sum(v["cost_gads"] for v in daily.values())
     print(f"Days with PPC: {len(daily)} | total cost ${tc:,.0f} | channel rows: {len(out['channels'])}")

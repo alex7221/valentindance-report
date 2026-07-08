@@ -1,6 +1,7 @@
 # Reálne klientske dáta a výstupy - NIKDY do repa
 data/camp_history.json
 data/ga4_cache.json
+data/query_history.json
 *.csv
 client_report.html
 demo_report.html

@@ -35,7 +35,7 @@ def main():
         "campaigns":ppc.get("campaigns",{}),"camp_daily":ppc.get("camp_daily",[]),
         "camp_window":ppc.get("camp_window",{}),"budgets":ppc.get("budgets",{}),
         "rsa":ppc.get("rsa",{}),"gimgs":ppc.get("gimgs",{}),"gprev":ppc.get("gprev",{}),"creatives":ppc.get("creatives",{}),
-        "searchTerms":ppc.get("search_terms",[]),"searchTermsWindow":ppc.get("search_terms_window",{}),
+        "searchTermsDaily":ppc.get("search_terms_daily",[]),
         "logo":asset("logo.b64"),"hero":asset("hero.b64"),
     }
     html=TEMPLATE.replace("/*__DATA__*/",json.dumps(DATA,ensure_ascii=False,separators=(",",":")))
@@ -815,7 +815,7 @@ $('gridE').addEventListener('click',e=>{const k=e.target.dataset.k;if(!k||k<MINK
 $('drPop').addEventListener('click',e=>{e.stopPropagation();const nav=e.target.dataset.nav;if(!nav)return;
   shiftView(nav[0]==='s'?viewS:viewE, nav.endsWith('prev')?-1:1);refreshCals();});
 $('drApply').addEventListener('click',()=>{curF=tmpF;curT=tmpT;setLabel(curF,curT);render(curF,curT);
-  if(!document.getElementById('tabCampaigns').hidden)renderCampaigns(curF,curT);closePop();});
+  if(!document.getElementById('tabCampaigns').hidden){renderCampaigns(curF,curT);renderSearchTerms(curF,curT);}closePop();});
 $('drCancel').addEventListener('click',closePop);
 $('drTrigger').addEventListener('click',e=>{e.stopPropagation();$('drPop').hidden?openPop():closePop();});
 document.addEventListener('click',()=>{if(!$('drPop').hidden)closePop();});
@@ -891,13 +891,20 @@ function renderCampaigns(F,T){
     if(campSort.col===col)campSort.dir*=-1; else campSort={col,dir:col==='name'?1:-1};
     renderCampaigns(F,T);}));
 }
-let qRendered=false;
-function renderSearchTerms(){
-  if(qRendered)return; qRendered=true;
-  const rows=(D.searchTerms||[]).map(r=>({...r,ctr:r.im?r.cl/r.im*100:0,cpc:r.cl?r.co/r.cl:0}));
-  const w=D.searchTermsWindow||{};
-  document.getElementById('qHint').textContent=(rows.length?rows.length+' dopytov · ':'')+'Google Ads'+
-    (w.start?' · '+fmtD(w.start)+' – '+fmtD(w.end):'');
+function searchTermsAgg(F,T){
+  const by={};
+  for(const r of (D.searchTermsDaily||[])){
+    if(r.d<F||r.d>T)continue;
+    const o=by[r.term]=by[r.term]||{term:r.term,im:0,cl:0,co:0,cv:0};
+    o.im+=r.im;o.cl+=r.cl;o.co+=r.co;o.cv+=r.cv;
+  }
+  return Object.values(by).map(r=>({...r,ctr:r.im?r.cl/r.im*100:0}))
+    .sort((a,b)=>b.cl-a.cl||b.co-a.co);
+}
+function renderSearchTerms(F,T){
+  const all=searchTermsAgg(F,T), rows=all.slice(0,60);
+  document.getElementById('qHint').textContent=(all.length?all.length+' dopytov · ':'')+'Google Ads · '+fmtD(F)+' – '+fmtD(T)+
+    (all.length>rows.length?' · zobrazených top '+rows.length:'');
   const el=document.getElementById('qTbl');
   if(!rows.length){el.innerHTML='<div class="empty">Žiadne vyhľadávacie dopyty v tomto období.</div>';return;}
   el.innerHTML='<table><thead><tr><th>Dopyt</th><th class="num">Zobrazenia</th><th class="num">Kliknutia</th>'+
@@ -938,7 +945,7 @@ document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
   const t=b.dataset.tab;
   document.getElementById('tabOverview').hidden=(t!=='overview');
   document.getElementById('tabCampaigns').hidden=(t!=='campaigns');
-  if(t==='campaigns'){renderCampaigns(curF,curT);renderSearchTerms();}
+  if(t==='campaigns'){renderCampaigns(curF,curT);renderSearchTerms(curF,curT);}
 }));
 document.getElementById('campActive').addEventListener('change',()=>renderCampaigns(curF,curT));
 

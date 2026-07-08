@@ -58,10 +58,10 @@ jobs:
           npm i -g vercel@latest
           vercel deploy site --prod --yes --token "${{ secrets.VERCEL_TOKEN }}"
 
-      - name: Commit accumulated campaign history + GA4 cache
+      - name: Commit accumulated campaign history + GA4 cache + search terms
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f data/camp_history.json data/ga4_cache.json || true
-          git commit -m "chore: update campaign history + GA4 cache $(date -u +%F)" || echo "no changes to commit"
+          git add -f data/camp_history.json data/ga4_cache.json data/query_history.json || true
+          git commit -m "chore: update campaign history + GA4 cache + search terms $(date -u +%F)" || echo "no changes to commit"
           git push || echo "push skipped"
