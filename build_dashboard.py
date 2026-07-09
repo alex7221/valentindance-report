@@ -211,6 +211,7 @@ TEMPLATE=r"""<!DOCTYPE html>
   tbody tr:hover{background:#fbfcfd}
   .src{font-size:11px;color:var(--mut)}
   .tblwrap{max-height:520px;overflow:auto}
+  .tblwrap thead th{position:sticky;top:0;z-index:2;background:#fff;box-shadow:0 1px 0 var(--line)}
   .chan2{display:flex;flex-direction:column}
   .chrow{position:relative;display:grid;grid-template-columns:1.9fr 1fr .85fr .85fr;align-items:center;gap:6px;padding:9px 10px;border-bottom:1px solid var(--line);font-size:13px}
   .chrow .rb{position:absolute;left:0;top:4px;bottom:4px;width:calc(64% * var(--r));background:linear-gradient(90deg,#91a53a,#d4e053);border-radius:7px;z-index:0}
@@ -899,7 +900,7 @@ function searchTermsAgg(F,T){
     o.im+=r.im;o.cl+=r.cl;o.co+=r.co;o.cv+=r.cv;
   }
   return Object.values(by).map(r=>({...r,ctr:r.im?r.cl/r.im*100:0}))
-    .sort((a,b)=>b.cl-a.cl||b.co-a.co);
+    .sort((a,b)=>b.cv-a.cv||b.cl-a.cl||b.co-a.co);
 }
 function renderSearchTerms(F,T){
   const all=searchTermsAgg(F,T), rows=all.slice(0,60);
