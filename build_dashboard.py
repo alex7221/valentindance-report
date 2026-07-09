@@ -313,6 +313,18 @@ TEMPLATE=r"""<!DOCTYPE html>
     #campTbl tr.cmp .camp-name{white-space:normal;width:100%}
     #campTbl tr.crv-row{display:block;margin:-7px 0 9px;border:1px solid var(--line);border-top:0;border-radius:0 0 11px 11px;background:#fafbfc}
     #campTbl tr.crv-row td{display:block;padding:0}
+    #qTbl thead{display:none}
+    #qTbl table,#qTbl tbody{display:block;min-width:0}
+    #qTbl tbody tr{display:grid;grid-template-columns:1fr 1fr;gap:1px 14px;background:#fff;
+      border:1px solid var(--line);border-radius:11px;margin:0 0 9px;padding:9px 13px}
+    #qTbl tbody tr td{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+      padding:4px 0;border:0;text-align:right;font-size:12.5px;min-width:0}
+    #qTbl tbody tr td::before{content:attr(data-label);font-weight:700;color:var(--mut);font-size:10px;
+      text-transform:uppercase;letter-spacing:.3px;text-align:left;white-space:nowrap;flex:none}
+    #qTbl tbody tr td:first-child{grid-column:1/-1;justify-content:flex-start;font-weight:800;font-size:13.5px;
+      padding-bottom:6px;margin-bottom:3px;border-bottom:1px solid var(--line);white-space:normal;width:100%}
+    #qTbl tbody tr td:first-child::before{display:none}
+    #qTbl tbody tr td.num{white-space:nowrap}
     .chrow{grid-template-columns:1.6fr 1fr .72fr .72fr;font-size:12px;padding:8px 9px;gap:6px}
     .chrow.chhead{letter-spacing:.2px;font-size:10px}
     .chrow.chhead .hfull{display:none}
