@@ -48,7 +48,7 @@ TEMPLATE=r"""<!DOCTYPE html>
 <html lang="sk"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>__BRAND__ — výkonnostný report</title>
-<meta name="theme-color" content="#00bed4">
+<meta name="theme-color" content="#91a53a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -60,8 +60,8 @@ TEMPLATE=r"""<!DOCTYPE html>
 <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 <style>
-  :root{--red:#f72d7f;--red-d:#c91a63;--ink:#0a0c0e;--ink2:#3a4046;--mut:#7b848c;
-    --line:#e7eaed;--bg:#f4f6f8;--card:#fff;--good:#0e8a3e;--bad:#c4161c;--soft:#fce6f0;}
+  :root{--red:#91a53a;--red-d:#748526;--lime:#d4e053;--lime-ink:#141212;--ink:#0a0c0e;--ink2:#3a4046;--mut:#7b848c;
+    --line:#e7eaed;--bg:#f4f6f8;--card:#fff;--good:#0e8a3e;--bad:#c4161c;--soft:#f4f6d8;}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);line-height:1.45;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
@@ -105,13 +105,13 @@ TEMPLATE=r"""<!DOCTYPE html>
   .dr-d.mut{color:#cfd5da;cursor:default}.dr-d.mut:hover{background:transparent}
   .dr-d.empty{cursor:default}.dr-d.empty:hover{background:transparent}
   .dr-d.inrange{background:var(--soft);border-radius:0}
-  .dr-d.sel{background:var(--red);color:#fff;font-weight:800}
-  .dr-d.sel:hover{background:var(--red-d)}
+  .dr-d.sel{background:var(--lime);color:var(--lime-ink);font-weight:800}
+  .dr-d.sel:hover{background:var(--red-d);color:#fff}
   .dr-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
   .dr-cancel{border:0;background:transparent;font-weight:700;color:var(--ink2);cursor:pointer;font-size:13px;padding:8px 14px;font-family:inherit}
   .dr-cancel:hover{color:var(--red)}
-  .dr-apply{border:0;background:var(--red);color:#fff;font-weight:800;border-radius:9px;padding:8px 18px;cursor:pointer;font-size:13px;font-family:inherit}
-  .dr-apply:hover{background:var(--red-d)}
+  .dr-apply{border:0;background:var(--lime);color:var(--lime-ink);font-weight:800;border-radius:9px;padding:8px 18px;cursor:pointer;font-size:13px;font-family:inherit}
+  .dr-apply:hover{background:var(--red-d);color:#fff}
   @media(max-width:640px){.dr-pop{width:330px}.dr-body{flex-direction:column}}
 
   .cmpbar{display:flex;align-items:center;justify-content:flex-end;gap:11px;margin-bottom:14px}
@@ -179,9 +179,9 @@ TEMPLATE=r"""<!DOCTYPE html>
   .crv .ct{padding:7px 9px}.crv .ct b{font-size:11.5px;display:block;line-height:1.3}
   .crv .ct p{font-size:10.5px;color:var(--mut);margin:3px 0 0;line-height:1.3;max-height:48px;overflow:hidden}
   .crv-a{text-decoration:none;color:inherit;cursor:pointer;transition:transform .12s,box-shadow .12s}
-  .crv-a:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,190,212,.18);border-color:var(--red)}
-  .crv-link{display:inline-block;margin-top:8px;font-size:10.5px;font-weight:800;color:#fff;background:var(--red);padding:4px 9px;border-radius:7px}
-  .crv-a:hover .crv-link{background:var(--red-d)}
+  .crv-a:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(145,165,58,.25);border-color:var(--red)}
+  .crv-link{display:inline-block;margin-top:8px;font-size:10.5px;font-weight:800;color:var(--lime-ink);background:var(--lime);padding:4px 9px;border-radius:7px}
+  .crv-a:hover .crv-link{background:var(--red-d);color:#fff}
   .crv-note{padding:12px;color:var(--mut);font-size:12px}
   .gad-mock{margin:11px 12px;max-width:580px;border:1px solid var(--line);border-radius:11px;padding:13px 15px;background:#fff}
   .gad-top{display:flex;align-items:center;gap:9px}
@@ -190,8 +190,8 @@ TEMPLATE=r"""<!DOCTYPE html>
   .gad-title{font-size:17px;color:#1a0dab;font-weight:600;margin-top:5px;line-height:1.25}
   .gad-desc{font-size:12.5px;color:#4d5156;margin-top:4px;line-height:1.4}
   .gad-actions{display:flex;gap:8px;flex-wrap:wrap;padding:4px 12px 14px}
-  .gad-open{display:inline-block;font-size:11.5px;font-weight:800;color:#fff;background:var(--red);padding:7px 13px;border-radius:8px;text-decoration:none}
-  .gad-open:hover{background:var(--red-d)}
+  .gad-open{display:inline-block;font-size:11.5px;font-weight:800;color:var(--lime-ink);background:var(--lime);padding:7px 13px;border-radius:8px;text-decoration:none}
+  .gad-open:hover{background:var(--red-d);color:#fff}
   .gad-open.ghost{background:#fff;color:var(--ink2);border:1.5px solid var(--line)}
   .gad-open.ghost:hover{border-color:var(--red);color:var(--red)}
   #campBudget{margin-bottom:14px}
@@ -213,7 +213,7 @@ TEMPLATE=r"""<!DOCTYPE html>
   .tblwrap{max-height:520px;overflow:auto}
   .chan2{display:flex;flex-direction:column}
   .chrow{position:relative;display:grid;grid-template-columns:1.9fr 1fr .85fr .85fr;align-items:center;gap:6px;padding:9px 10px;border-bottom:1px solid var(--line);font-size:13px}
-  .chrow .rb{position:absolute;left:0;top:4px;bottom:4px;width:calc(64% * var(--r));background:linear-gradient(90deg,#00bed4,#33b6c8);border-radius:7px;z-index:0}
+  .chrow .rb{position:absolute;left:0;top:4px;bottom:4px;width:calc(64% * var(--r));background:linear-gradient(90deg,#91a53a,#d4e053);border-radius:7px;z-index:0}
   .chrow>span{position:relative;z-index:1;min-width:0}
   .chrow .cn{font-weight:700;color:#0a0c0e;text-shadow:0 0 3px #fff,0 0 5px #fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .chrow .num{text-align:right;font-variant-numeric:tabular-nums}
@@ -245,7 +245,7 @@ TEMPLATE=r"""<!DOCTYPE html>
   .bar-row{display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:11px}
   .bar-row .rk{font-size:12px;font-weight:800;color:var(--mut);text-align:right}
   .bar-track{background:#f0f2f4;border-radius:8px;overflow:hidden;height:30px;position:relative;display:flex;align-items:center}
-  .bar-fill{height:100%;background:linear-gradient(90deg,var(--red),#33b6c8);border-radius:8px;position:absolute;left:0;top:0}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--lime));border-radius:8px;position:absolute;left:0;top:0}
   .bar-lbl{position:relative;padding-left:11px;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;z-index:1;color:var(--ink)}
   .bar-row .vv{font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
   .bar-row .vv small{color:var(--mut);font-weight:600}
@@ -334,7 +334,7 @@ TEMPLATE=r"""<!DOCTYPE html>
     <div class="ctrl">
       <div class="dr" id="dr">
         <button class="dr-trigger" id="drTrigger">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00bed4" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#91a53a" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
           <span id="drLabel"></span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7b848c" stroke-width="3"><path d="M6 9l6 6 6-6"/></svg>
         </button>
@@ -504,7 +504,7 @@ function renderViews(F,T,c,pc,p,pp){
     `<div class="vc-note">Rozpad ${intf(c.leads)} leadov podľa GTM click-akcie (GA4).</div>`;
 }
 
-const palette=["#00bed4","#0098ab","#33b6c8","#13889a","#1f9aad","#0d5e6a","#5cc6d4","#157d8d","#2aa5b8","#0f7280","#46b0c0","#0c6470","#6ad0dc","#198a99"];
+const palette=["#91a53a","#d4e053","#748526","#b8c94a","#5c6b1e","#c3d16d","#8a9c35","#a9bd47","#6f8226","#dde873","#7c8f30","#c7d65e","#647519","#e2ec8d"];
 
 // ---- KPI render for [F,T] ----
 function render(F,T){
@@ -644,7 +644,7 @@ function trendPeriods(yr,py){const out=[];
       out.push({idx:i+1,ck:cd.toISOString().slice(0,10),pk:pd.toISOString().slice(0,10),
         label:`${cd.getUTCDate()}.${cd.getUTCMonth()+1}.`,title:`${cd.getUTCDate()}.${cd.getUTCMonth()+1}.${yr}`});}}
   return out;}
-const MCOLOR={leads:'#00bed4',webform:'#0e8a3e',cost:'#2b6cb0',cpa:'#d8743a',cpl:'#7b3fa0',wfshare:'#b8860b',relshare:'#2e9e5b',winshare:'#c0395b'};
+const MCOLOR={leads:'#91a53a',webform:'#0e8a3e',cost:'#2b6cb0',cpa:'#d8743a',cpl:'#7b3fa0',wfshare:'#b8860b',relshare:'#2e9e5b',winshare:'#c0395b'};
 function drawTrend(){
   const yr=+document.getElementById('yr').value, py=yr-1, scope=mode;
   const P=trendPeriods(yr,py), ms=selMetrics;
@@ -658,8 +658,8 @@ function drawTrend(){
     const m=ms[0], M=METRICS[m];
     document.getElementById('trendhint').textContent=`${M.label} · ${yr} vs ${py}`;
     datasets=[
-      {label:String(yr),data:P.map(p=>({x:p.idx,y:metricVal(m,scope,p.ck)})),borderColor:'#00bed4',
-        backgroundColor:'rgba(0,190,212,.10)',borderWidth:2.2,pointRadius:0,pointHoverRadius:4,tension:.25,fill:true,yAxisID:'y',spanGaps:true},
+      {label:String(yr),data:P.map(p=>({x:p.idx,y:metricVal(m,scope,p.ck)})),borderColor:'#91a53a',
+        backgroundColor:'rgba(145,165,58,.12)',borderWidth:2.2,pointRadius:0,pointHoverRadius:4,tension:.25,fill:true,yAxisID:'y',spanGaps:true},
       {label:String(py),data:P.map(p=>({x:p.idx,y:metricVal(m,scope,p.pk)})),borderColor:'#c2c8ce',
         borderWidth:1.6,borderDash:[4,3],pointRadius:0,pointHoverRadius:4,tension:.25,fill:false,yAxisID:'y',spanGaps:true},
     ];
