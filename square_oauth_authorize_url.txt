@@ -1,0 +1,1 @@
+https://connect.squareup.com/oauth2/authorize?client_id=sq0idp-ZMgxj6tD5CW0iMEvVkr7hg&scope=APPOINTMENTS_READ+APPOINTMENTS_ALL_READ&session=false&redirect_uri=https%3A%2F%2Fvalentindance.vercel.app%2F

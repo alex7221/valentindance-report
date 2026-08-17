@@ -10,10 +10,10 @@ export SM_ACCOUNT="${SM_ACCOUNT-analytics@signity.sk}"   # podedi pull_ppc.py (t
 END="${1:-$(date +%Y-%m)}"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT INT TERM
 
-echo "[1/3] Tahám leady z GA4 (click_schedule_now / click_phone / click_mail)…"
+echo "[1/4] Tahám leady z GA4 (click_schedule_now / click_phone / click_mail)…"
 "$PY" "$DIR/pull_leads.py" --out "$TMP/agg.json"
 
-echo "[2/3] Tahám PPC + GA4 za 2025-01..$END (Google Ads, GA4 kanaly)…"
+echo "[2/4] Tahám PPC + GA4 za 2025-01..$END (Google Ads, GA4 kanaly)…"
 set +e
 "$PY" "$DIR/pull_ppc.py" --range 2025-01 "$END" --out "$TMP/ppc.json"
 PRC=$?
@@ -25,8 +25,18 @@ elif [ "$PRC" -ne 0 ]; then
   echo "  (PPC ciastocne zlyhalo — dashboard s dostupnymi datami)"
 fi
 
-echo "[3/3] Generujem interaktivny dashboard…"
+echo "[3/4] Tahám rezervácie zo Square…"
+set +e
+"$PY" "$DIR/pull_bookings.py" --out "$TMP/bookings.json"
+BRC=$?
+set -e
+if [ "$BRC" -ne 0 ]; then
+  echo "  (Square ciastocne/uplne zlyhalo — dashboard bez rezervacii, ostatne data ostavaju)"
+fi
+
+echo "[4/4] Generujem interaktivny dashboard…"
 PPC_ARG=""; [ -f "$TMP/ppc.json" ] && PPC_ARG="--ppc $TMP/ppc.json"
-"$PY" "$DIR/build_dashboard.py" --agg "$TMP/agg.json" $PPC_ARG --out "$DIR/report.html" --client "Valentindance"
+BOOK_ARG=""; [ -f "$TMP/bookings.json" ] && BOOK_ARG="--bookings $TMP/bookings.json"
+"$PY" "$DIR/build_dashboard.py" --agg "$TMP/agg.json" $PPC_ARG $BOOK_ARG --out "$DIR/report.html" --client "Valentindance"
 
 echo "Hotovo: $DIR/report.html"

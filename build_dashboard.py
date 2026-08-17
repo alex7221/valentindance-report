@@ -14,12 +14,15 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--agg",required=True)
     ap.add_argument("--ppc",default=None)
+    ap.add_argument("--bookings",default=None)
     ap.add_argument("--out",required=True)
     ap.add_argument("--client",default="Your Brand")
     ap.add_argument("--assets-dir",default=None)
     a=ap.parse_args()
     agg=json.load(open(a.agg,encoding="utf-8"))
     ppc=json.load(open(a.ppc,encoding="utf-8")) if a.ppc else {"daily":{},"channels":[]}
+    bookings_raw=json.load(open(a.bookings,encoding="utf-8"))["bookings"] if a.bookings else []
+    bookings=[{"d":b["created_at"][:10],"status":b["status"]} for b in bookings_raw]
     import os
     here=os.path.dirname(os.path.abspath(__file__))
     adir=a.assets_dir or os.path.join(here,"assets")
@@ -30,6 +33,7 @@ def main():
         "client":a.client,"generated":dt.date.today().isoformat(),
         "date_min":agg["date_min"],"date_max":agg["date_max"],"list_since":agg["list_since"],
         "leads":agg["leads"],"monthly":agg["monthly"],"categories":agg["categories"],
+        "bookings":bookings,
         "daily":ppc.get("daily",{}),"chan":ppc.get("channels",[]),
         "formstart":ppc.get("form_start",{}),"formview":ppc.get("form_view",{}),
         "campaigns":ppc.get("campaigns",{}),"camp_daily":ppc.get("camp_daily",[]),
@@ -42,6 +46,7 @@ def main():
     html=html.replace("__BRAND__",a.client).replace("__BRANDSHORT__",a.client.split(".")[0])
     open(a.out,"w",encoding="utf-8").write(html)
     print("Wrote",a.out,"| leads",len(agg["leads"]),"| months",len(agg["monthly"]),
+          "| bookings",len(bookings),
           "| ppc days",len(DATA["daily"]),"chan",len(DATA["chan"]),"| HTML",len(html)//1024,"KB")
 
 TEMPLATE=r"""<!DOCTYPE html>
@@ -116,7 +121,7 @@ TEMPLATE=r"""<!DOCTYPE html>
 
   .cmpbar{display:flex;align-items:center;justify-content:flex-end;gap:11px;margin-bottom:14px}
   .cmpbar .cmplab{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);font-weight:700}
-  .grid{display:grid;gap:14px}.kpis{grid-template-columns:repeat(3,1fr)}
+  .grid{display:grid;gap:14px}.kpis{grid-template-columns:repeat(4,1fr)}
   @media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}}
   .kpi .lab[title]{cursor:help;border-bottom:1px dotted #c9cfd4;display:inline-block}
   .card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:17px 18px;box-shadow:0 1px 2px rgba(10,12,14,.03)}
@@ -485,6 +490,11 @@ function aggLeads(F,T){let leads=0,wf=0,rel=0,relMark=0,won=0,dealMark=0;const c
     if('rel'in l){relMark++;if(l.rel)rel++;}
     if('obch'in l){dealMark++;if(l.obch==='won')won++;}}}
   return {leads,wf,cats,svcs,svcWf,rel,relMark,won,dealMark};}
+const CANCELLED=new Set(["CANCELLED_BY_CUSTOMER","CANCELLED_BY_SELLER"]);
+function aggBookings(F,T){let total=0,active=0;const statuses={};
+  for(const b of D.bookings){if(b.d>=F&&b.d<=T){total++;statuses[b.status]=(statuses[b.status]||0)+1;
+    if(!CANCELLED.has(b.status))active++;}}
+  return {total,active,statuses};}
 function aggPPC(F,T){let cg=0,cm=0,vg=0,vm=0,has=false;
   for(const d in D.daily){if(d>=F&&d<=T){const x=D.daily[d];cg+=x.cost_gads;cm+=x.cost_meta;vg+=x.conv_gads||0;vm+=x.conv_meta||0;has=true;}}
   if(!has&&!hasPPC) return null;
@@ -523,10 +533,13 @@ const palette=["#91a53a","#d4e053","#748526","#b8c94a","#5c6b1e","#c3d16d","#8a9
 function render(F,T){
   const [pF,pT]=prevRange(F,T);
   const c=aggLeads(F,T), pr=aggLeads(pF,pT);
+  const bk=aggBookings(F,T), bkp=aggBookings(pF,pT);
   document.getElementById('pmeta').textContent="vybrané: "+fmtD(F)+" – "+fmtD(T)+" · "+cmpLab()+" vs "+fmtD(pF)+" – "+fmtD(pT);
   const p=aggPPC(F,T), pp=aggPPC(pF,pT);
   const cards=[
     {lab:"Leady spolu",val:intf(c.leads),yoy:pct(c.leads,pr.leads),cls:"star"},
+    {lab:"Rezervácie (Square)",val:intf(bk.active),yoy:pct(bk.active,bkp.active),cls:"star",
+      note:c.leads?"Lead → rezervácia: "+(bk.active/c.leads*100).toFixed(1).replace('.',',')+" %":undefined},
   ];
   if(p){
     const cpa=c.leads?p.cost/c.leads:null, cpaP=(pp&&pr.leads)?pp.cost/pr.leads:null;

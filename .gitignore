@@ -3,6 +3,8 @@ data/camp_history.json
 data/ga4_cache.json
 data/query_history.json
 data/leads_cache.json
+data/bookings_cache.json
+data/square_tokens.json
 *.csv
 client_report.html
 demo_report.html
