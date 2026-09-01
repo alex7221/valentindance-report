@@ -509,7 +509,7 @@ const PAID_MED=['cpc','ppc','paid','paidsearch','paid_social','cpm','display'];
 function isPaidSM(sm){const med=((sm||'').split('/')[1]||'').trim().toLowerCase();return PAID_MED.some(k=>med.includes(k));}
 function ga4PaidLeads(F,T){let l=0;for(const x of D.chan){if(x.d>=F&&x.d<=T&&isPaidSM(x.sm))l+=x.l;}return l;}
 function yoyMini(p,invert){if(p==null)return'';const good=invert?p<=0:p>=0;return `<span class="yy ${good?'up':'down'}">${p>=0?'+':''}${p} % ${cmpLab()}</span>`;}
-function renderViews(F,T,c,pc,p,pp){
+function renderViews(F,T,c,pc,p,pp,bk){
   const plat=document.getElementById('viewPlatform'), g4=document.getElementById('viewGA4');
   if(!p){plat.className=g4.className="card viewcard";plat.innerHTML=g4.innerHTML='<div class="empty">Čaká na PPC dáta.</div>';return;}
   const cpa=c.leads?p.cost/c.leads:null, cpaP=(pp&&pc.leads)?pp.cost/pc.leads:null;
@@ -524,7 +524,8 @@ function renderViews(F,T,c,pc,p,pp){
   g4.innerHTML=`<div class="vc-h">Leady podľa akcie</div>`+
     (ce.length?ce.map(([k,v])=>`<div class="vc-row"><span>${CATLAB[k]||k}</span><b>${intf(v)}</b></div>`).join(''):
       '<div class="vc-row"><span>Žiadne leady v tomto období</span></div>')+
-    `<div class="vc-note">Rozpad ${intf(c.leads)} leadov podľa GTM click-akcie (GA4).</div>`;
+    (bk?`<div class="vc-row big"><span>Rezervácie (Square)</span><b>${intf(bk.active)}</b></div>`:'')+
+    `<div class="vc-note">Rozpad ${intf(c.leads)} leadov podľa GTM click-akcie (GA4)${bk?' · rezervácie zo Square Bookings':''}.</div>`;
 }
 
 const palette=["#91a53a","#d4e053","#748526","#b8c94a","#5c6b1e","#c3d16d","#8a9c35","#a9bd47","#6f8226","#dde873","#7c8f30","#c7d65e","#647519","#e2ec8d"];
@@ -553,7 +554,7 @@ function render(F,T){
       const lab=`<div class="lab ${cd.cls||''}">${cd.lab}</div>`;
       d.innerHTML=`${lab}<div class="val ${cd.sm?'sm':''}">${cd.val}</div>${yoy||""}${(cd.note&&cd.yoy!==undefined)?`<div class="note">${cd.note}</div>`:""}`;}
     kc.appendChild(d);});
-  renderViews(F,T,c,pr,p,pp);
+  renderViews(F,T,c,pr,p,pp,bk);
 
   // channels: source/medium | leady | sessions
   const ch=document.getElementById('channels'); const ca=channelsAgg(F,T);
