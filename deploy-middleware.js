@@ -55,8 +55,8 @@ export default async function middleware(request) {
         },
       });
     }
-    return new Response(formPage(true), { status: 401, headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Debug-Pass-Len': String((PASS||'').length), 'X-Debug-Pw-Len': String(pw.length) } });
+    return new Response(formPage(true), { status: 401, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
   }
 
-  return new Response(formPage(false), { status: 401, headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Debug-Pass-Len': String((PASS||'').length) } });
+  return new Response(formPage(false), { status: 401, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
 }
