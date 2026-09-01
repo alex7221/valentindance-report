@@ -1,10 +1,12 @@
 // Client report — ochrana heslom BEZ prihlasovacieho mena (Vercel Edge middleware).
 // Vlastný prihlasovací formulár + cookie. Beží aj na free Hobby pláne.
-// Heslo zmeníš v PASS nižšie (po zmene: ./deploy.sh, prípadne push do GitHub).
+// Heslo a token idú z Vercel Environment Variables (REPORT_PASSWORD, REPORT_TOKEN) - repo je
+// public, nesmú byť natvrdo v kóde. Nastav ich vo Vercel dashboarde → Settings → Environment
+// Variables, prípadne cez `vercel env add`.
 export const config = { matcher: '/((?!favicon.ico|manifest.json|icon-).*)' };
 
-const PASS = 'ValentinReport';      // heslo na report
-const TOKEN = 'vd-report-auth-2026';        // hodnota cookie (nie heslo)
+const PASS = process.env.REPORT_PASSWORD;   // heslo na report
+const TOKEN = process.env.REPORT_TOKEN;     // hodnota cookie (nie heslo)
 const COOKIE = 'report_auth';
 
 function formPage(err) {
@@ -53,8 +55,8 @@ export default async function middleware(request) {
         },
       });
     }
-    return new Response(formPage(true), { status: 401, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+    return new Response(formPage(true), { status: 401, headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Debug-Pass-Len': String((PASS||'').length), 'X-Debug-Pw-Len': String(pw.length) } });
   }
 
-  return new Response(formPage(false), { status: 401, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+  return new Response(formPage(false), { status: 401, headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Debug-Pass-Len': String((PASS||'').length) } });
 }
